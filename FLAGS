@@ -1,0 +1,87 @@
+library IEEE;
+use IEEE.std_logic_1164.all;
+
+-- Una entidad para hacer el refresco de los displays
+-- Otra entidad para ver como se van a comportar en cuanto a las interacciones que puede haber entre coche -- y limites. La se�al que nos va a devolver esta entidad va a ser los segmentos que habr� que activar.
+
+ENTITY ComportamientoSegmentos
+	PORT(
+    	botonI: IN STD_LOGIC;
+        botonD: IN STD_LOGIC;
+        clk: IN STD_LOGIC;
+        Segmentos: OUT STD_LOGIC_VECTOR(7 DOWNTO 0)
+   		);
+    
+END ENTITY;
+
+-- Codigos de los segmentos:
+--	":"(derecho) = "0000 0110" 
+--	":"(izquierdo) = "0011 0000"
+--	":-" = "0111 0000"
+--	"-:" = "0100 0110"
+-- "-" = "0100 0000"
+
+--SI SON ACTIVOS A NIVEL BAJO:
+--	":"(derecho) = "1111 1001" 
+--	":"(izquierdo) = "1100 1111"
+--	":-" = "1000 1111"
+--	"-:" = "1011 1001"
+-- "-" = "1011 1111"
+-- Si al final resulta que son activos a nivel alto porque solo se activa a nivel bajo la seleccion del -- -- display, seria invertir los 1's y los 0's en los vectores anteriores.
+
+ARCHITECTURE Behav OF comportamientoSegmentos IS
+
+TYPE LimitFlag IS RECORD --Creacion del tipo estructura para el flag del limite.
+	Lado: STD_LOGIC; --1 Derecha, 0 Izquierda.
+   	Posicion: STD_LOGIC_VECTOR(2 DOWNTO 0)
+END RECORD LimitFlag;
+
+signal CocheSolo: STD_LOGIC_VECTOR(7 DOWNTO 0):="0100 0110";
+signal LimiteI: STD_LOGIC_VECTOR(7 DOWNTO 0):="1100 1111";
+signal LimiteD: STD_LOGIC_VECTOR(7 DOWNTO 0) :="1111 1001";
+signal LimiteIcoche: STD_LOGIC_VECTOR(7 DOWNTO 0) :="0111 0000";
+signal LimiteDcoche: STD_LOGIC_VECTOR(7 DOWNTO 0) :="0100 0110";
+
+signal LimitIFlag: LimitFlag; --Flag limite izquierdo.
+signal LimitDFlag: LimitFlag; --Flag limite derecho.
+signal cocheFlag: STD_LOGIC_VECTOR(2 DOWNTO 0); --Flag de la posicion del coche.
+
+signal Segmentosaux: STD_LOGIC_VECTOR(7 DOWNTO 0);
+
+BEGIN
+
+IF (clk'event AND clk = 1) THEN
+	-- un IF para el boton izquierdo
+	IF (botonI = 1) THEN -- hay que cambiarlo, el cambio puede producirse independientemente del boton.
+    	IF(cocheFlag = LimitIFlag.Posicion) THEN --Si coche y limite est�n en mismo display
+        	IF(LimitI.Lado = 0) THEN
+            	Segmentosaux <= LimiteIcoche;
+            ELSE
+            	--GameOver
+                Segmentos <= "00000000";
+            END IF;
+        ELSE
+        	--nada
+        END IF;
+        
+    END IF;
+    
+    --otro If para el boton derecho
+    IF (botonD = 1) THEN -- hay que cambiarlo, el cambio puede producirse independientemente del boton.
+    	IF(cocheFlag = LimitDFlag.Posicion) THEN --si coche y limite est�n en mismo display
+        	IF(LimitD.Lado = 1) THEN
+            	Segmentosaux <= LimiteDcoche;
+            ELSE
+            	--GameOver
+                Segmentos <= "00000000";
+            END IF;
+        ELSIF ()
+        ELSE
+        	--nada
+        END IF;
+    END IF;
+END IF;
+
+END ARCHITECTURE;
+
+-- Y si hacemos una entidad para ver que segmentos ponemos a la que entren solo las se�ales de posicion de -- otra entidad, en al que se har�n operaciones con los flags para conocer las posiciones de todo durante el juego?
